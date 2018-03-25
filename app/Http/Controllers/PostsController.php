@@ -9,9 +9,6 @@ use Illuminate\Http\Request;
 class PostsController extends Controller
 {
 
-    /**
-     * Check authentication of user before return posts
-     */
     public function __construct()
     {
         $this->middleware('auth:api');
@@ -24,17 +21,12 @@ class PostsController extends Controller
      */
     public function index()
     {
-        return Post::all();
+        return Post::with('user')->latest()->limit(5)->get();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function show(Post $post)
     {
-        //
+        return $post;
     }
 
     /**
@@ -45,29 +37,18 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $this->validate($request, [
+            'title' => 'required',
+            'body' => 'required'
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Post $post)
-    {
-        //
-    }
+        $post = new Post($request->all());
+        $request->user()->posts()->save($post);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Post $post)
-    {
-        //
+        return $post;
+        // return response()->json([
+        //     'message' => 'Post created successfully'
+        // ]);
     }
 
     /**
@@ -79,7 +60,13 @@ class PostsController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $this->validate($request, [
+            'title' => 'required',
+            'body' => 'required'
+        ]);
+
+        $post->update($request->all());
+        return $post;
     }
 
     /**
@@ -90,6 +77,7 @@ class PostsController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        return $post;
     }
 }
