@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Post;
 use App\User;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
+use Storage;
 
 class PostsController extends Controller
 {
@@ -37,18 +39,26 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
+
         $this->validate($request, [
             'title' => 'required',
             'body' => 'required'
         ]);
 
         $post = new Post($request->all());
+
+        // Get the file real name.
+        $fileName =  time() . $_FILES['image']['name'];
+        // Generate file object.
+        $file = new File($_FILES['image']['tmp_name']);
+        // Save the file to storage and save the url to post->image.
+        Storage::putFileAs('public/images', $file, $fileName);
+        $post->image = 'images/' . $fileName;
+
+        // Associate post with authenticated user and save it.
         $request->user()->posts()->save($post);
 
         return $post;
-        // return response()->json([
-        //     'message' => 'Post created successfully'
-        // ]);
     }
 
     /**
